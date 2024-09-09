@@ -7,6 +7,7 @@ import {
   html,
   nothing,
 } from "lit";
+import { format } from "date-fns";
 import { customElement, property, state } from "lit/decorators";
 import { computeStateName } from "../../../common/entity/compute_state_name";
 import "../../../components/entity/state-badge";
@@ -16,6 +17,7 @@ import { isUnavailableState } from "../../../data/entity";
 import { SENSOR_DEVICE_CLASS_TIMESTAMP } from "../../../data/sensor";
 import "../../../panels/lovelace/components/hui-timestamp-display";
 import { HomeAssistant } from "../../../types";
+import "../../../components/ha-time-input";
 
 @customElement("entity-preview-row")
 class EntityPreviewRow extends LitElement {
@@ -73,6 +75,22 @@ class EntityPreviewRow extends LitElement {
       ha-slider {
         width: 100%;
         max-width: 200px;
+      }
+      ha-time-input {
+        margin-left: 4px;
+        margin-inline-start: 4px;
+        margin-inline-end: initial;
+        direction: var(--direction);
+      }
+      .datetimeflex {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+      }
+      mwc-button {
+        margin-right: -0.57em;
+        margin-inline-end: -0.57em;
+        margin-inline-start: initial;
       }
     `;
   }
@@ -168,6 +186,64 @@ class EntityPreviewRow extends LitElement {
               )
             : ""}
         </ha-select>
+      `;
+    }
+    if (domain === "date") {
+      return html`
+        <ha-date-input
+          .locale=${this.hass.locale}
+          .disabled=${isUnavailableState(stateObj.state)}
+          .value=${isUnavailableState(stateObj.state)
+            ? undefined
+            : stateObj.state}
+        >
+        </ha-date-input>
+      `;
+    }
+    if (domain === "datetime") {
+      const dateObj = isUnavailableState(stateObj.state)
+        ? undefined
+        : new Date(stateObj.state);
+      const time = dateObj ? format(dateObj, "HH:mm:ss") : undefined;
+      const date = dateObj ? format(dateObj, "yyyy-MM-dd") : undefined;
+      return html`
+        <div class="datetimeflex">
+          <ha-date-input
+            .label=${computeStateName(stateObj)}
+            .locale=${this.hass.locale}
+            .value=${date}
+            .disabled=${isUnavailableState(stateObj.state)}
+          >
+          </ha-date-input>
+          <ha-time-input
+            .value=${time}
+            .disabled=${isUnavailableState(stateObj.state)}
+            .locale=${this.hass.locale}
+          ></ha-time-input>
+        </div>
+      `;
+    }
+    if (domain === "time") {
+      return html`
+        <ha-time-input
+          .value=${isUnavailableState(stateObj.state)
+            ? undefined
+            : stateObj.state}
+          .locale=${this.hass.locale}
+          .disabled=${isUnavailableState(stateObj.state)}
+        ></ha-time-input>
+      `;
+    }
+    if (domain === "lock") {
+      return html`
+        <mwc-button
+          .disabled=${isUnavailableState(stateObj.state)}
+          class="text-content"
+        >
+          ${stateObj.state === "locked"
+            ? this.hass!.localize("ui.card.lock.unlock")
+            : this.hass!.localize("ui.card.lock.lock")}
+        </mwc-button>
       `;
     }
     return html` ${this.hass.formatEntityState(stateObj)} `;
