@@ -99,7 +99,7 @@ class EntityPreviewRow extends LitElement {
     `;
   }
 
-  private renderEntityState(stateObj: HassEntity): TemplateResult {
+  private renderEntityState(stateObj: HassEntity): TemplateResult | string {
     const domain = stateObj.entity_id.split(".", 1)[0];
     if (domain === "sensor") {
       const showSensor =
@@ -114,7 +114,7 @@ class EntityPreviewRow extends LitElement {
                 capitalize
               ></hui-timestamp-display>
             `
-          : html` ${this.hass.formatEntityState(stateObj)} `}
+          : this.hass.formatEntityState(stateObj)}
       `;
     }
     if (domain === "switch") {
@@ -130,7 +130,7 @@ class EntityPreviewRow extends LitElement {
                 .stateObj=${stateObj}
               ></ha-entity-toggle>
             `
-          : html` ${this.hass.formatEntityState(stateObj)} `}
+          : this.hass.formatEntityState(stateObj)}
       `;
     }
     if (domain === "number") {
@@ -306,7 +306,7 @@ class EntityPreviewRow extends LitElement {
         </div>
       `;
     }
-    return html` ${this.hass.formatEntityState(stateObj)} `;
+    return this.hass.formatEntityState(stateObj);
   }
 }
 
